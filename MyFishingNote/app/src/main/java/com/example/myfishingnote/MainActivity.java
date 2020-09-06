@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
+import com.example.myfishingnote.ui.note.AddNote;
 import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
@@ -77,8 +78,12 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                /*Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+                Intent intent = new Intent(MainActivity.this, AddNote.class);
+                startActivity(intent);
+
+
             }
         });
 
@@ -167,6 +172,12 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
-
-
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawers();
+        } else {
+            super.onBackPressed();
+        }
+    }
 }
