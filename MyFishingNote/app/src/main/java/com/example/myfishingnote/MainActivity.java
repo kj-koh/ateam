@@ -1,5 +1,6 @@
 package com.example.myfishingnote;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -7,6 +8,12 @@ import android.view.View;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.example.myfishingnote.ui.home.HomeFragment;
+import com.example.myfishingnote.ui.map.MapFragment;
+import com.example.myfishingnote.ui.map.MapsFragment;
+import com.example.myfishingnote.ui.note.NoteFragment;
+import com.example.myfishingnote.ui.settings.SettingsActivity;
+import com.example.myfishingnote.ui.suggest.SuggestFragment;
 import com.example.myfishingnote.ui.tide.TideFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -34,10 +41,14 @@ public class MainActivity extends AppCompatActivity {
     ActionBarDrawerToggle drawerToggle;
     Toolbar toolbar;
 
-
-
-
-
+    /**
+     * 프래그먼트 선언
+     */
+    HomeFragment homeFragment;
+    TideFragment tideFragment;
+    SuggestFragment suggestFragment;
+    NoteFragment noteFragment;
+    MapsFragment mapsFragment;
 
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -51,8 +62,6 @@ public class MainActivity extends AppCompatActivity {
         //ID존재 여부 확인
 
         //DB확인
-
-
 
         super.onCreate(savedInstanceState);
 
@@ -83,23 +92,21 @@ public class MainActivity extends AppCompatActivity {
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-/*
-        // 화면에 붙여줄 프래그먼트 선언 및
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_tide, R.id.nav_suggest, R.id.nav_note, R.id.nav_map)
-                .setDrawerLayout(drawer)
-                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
-*/
+        /**
+         * 프래그먼트 객체생성
+         */
+        homeFragment = new HomeFragment();
+        tideFragment = new TideFragment();
+        suggestFragment = new SuggestFragment();
+        noteFragment = new NoteFragment();
+        mapsFragment = new MapsFragment();
 
+        getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
 
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
                 //drawer를 닫아준다
                 DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout) ;
@@ -109,38 +116,29 @@ public class MainActivity extends AppCompatActivity {
 
                 switch (item.getItemId()) {
                     case R.id.nav_home :
-
+                        transaction.replace(R.id.nav_host_fragment, homeFragment).commit();
                         break;
                     case R.id.nav_tide :
-
-                        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                        TideFragment fragment_tide = new TideFragment();
-
-                        transaction.replace(R.id.nav_host_fragment, fragment_tide);
-                        transaction.commit();
+                        transaction.replace(R.id.nav_host_fragment, tideFragment).commit();
                         break;
-
                     case R.id.nav_suggest :
-
+                        transaction.replace(R.id.nav_host_fragment, suggestFragment).commit();
                         break;
-
                     case R.id.nav_note :
-
+                        transaction.replace(R.id.nav_host_fragment, noteFragment).commit();
                         break;
-
                     case R.id.nav_map :
-
+                        transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
                         break;
-
-
-
                     case R.id.nav_settings :
-                        Toast.makeText(MainActivity.this, "settings", Toast.LENGTH_SHORT).show();
+                        // Toast.makeText(MainActivity.this, "settings", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                        startActivity(intent);
                         break;
                     case R.id.nav_help :
-                        Toast.makeText(MainActivity.this, "help", Toast.LENGTH_SHORT).show();
-                        break;
-                    default :
+                        // Toast.makeText(MainActivity.this, "help", Toast.LENGTH_SHORT).show();
+                        // Intent intent = new Intent(MainActivity.this, HelpActivity.class);
+                        // startActivity(intent);
                         break;
                 }
 
