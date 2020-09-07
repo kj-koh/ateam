@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.example.myfishingnote.databinding.ActivityFabBinding;
 import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
@@ -23,6 +24,7 @@ import com.google.android.material.navigation.NavigationView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
@@ -36,11 +38,16 @@ import androidx.appcompat.widget.Toolbar;
 public class MainActivity extends AppCompatActivity {
 
     //화면 상단 main.xml
-    //drawer
+
+    //drawer선언
     DrawerLayout drawerLayout;
     NavigationView navigationView;
     ActionBarDrawerToggle drawerToggle;
     Toolbar toolbar;
+
+    //AniamtedFAB사용을 위한 바인딩과 애니메이션 처리준비
+    ActivityFabBinding bi;
+    boolean isRotate = false;
 
     /**
      * 프래그먼트 선언
@@ -51,20 +58,22 @@ public class MainActivity extends AppCompatActivity {
     NoteFragment noteFragment;
     MapsFragment mapsFragment;
 
+    private BackPressCloseHandler backPressCloseHandler;
+
 
     private AppBarConfiguration mAppBarConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        //splash테마 변경
+        //초기에 세팅된 splash테마를 onCreate시에 일반테마로 변경
+        //intro처리
         setTheme(R.style.AppTheme);
 
-        //ID존재 여부 확인
-
-        //DB확인
-
         super.onCreate(savedInstanceState);
+
+        //앱종료를 위한 back버튼 선언
+        backPressCloseHandler = new BackPressCloseHandler(this);
 
         //activity_main_xml화면을 붙여준다
         setContentView(R.layout.activity_main);
@@ -72,18 +81,64 @@ public class MainActivity extends AppCompatActivity {
         //툴바 선언
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-        //액션바 선언 및 플로팅 액션버튼
+        //액션바 선언
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = findViewById(R.id.fab);
+
+        //액션 버튼
+       /* FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
+                *//*Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*//*
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 startActivity(intent);
+            }
+        });*/
 
 
+        //app_bar_main과 바인딩
+        bi = DataBindingUtil.setContentView(this, R.layout.app_bar_main);
+        //fabAdd에 클릭리스너 붙여준다
+      /*  bi.fabAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isRotate = ViewAnimation.rotateFab(v, isRotate);
+            }
+        });*/
+
+        ViewAnimation.init(bi.fabCamera);
+        ViewAnimation.init(bi.fabAddNote);
+
+        //fab
+        bi.fabAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isRotate = ViewAnimation.rotateFab(v, !isRotate);
+                if(isRotate){
+                    ViewAnimation.showIn(bi.fabCamera);
+                    ViewAnimation.showIn(bi.fabAddNote);
+                }else{
+                    ViewAnimation.showOut(bi.fabCamera);
+                    ViewAnimation.showOut(bi.fabAddNote);
+                }
+
+            }
+        });
+
+        //미니FAB의 클릭 리스너 2개
+        bi.fabCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Camera", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        bi.fabAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(MainActivity.this, "AddNote", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -167,14 +222,20 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
+    //메인화면에서 Back Button처리
     @Override
     public void onBackPressed() {
+        //Drawer가 열려있으면 Drawer를 닫아준다
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawers();
+            //Home이 아니면 Home으로 변경해준다.
         } else if (getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment) != homeFragment) {
             getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
+        //Home에서는 BackPressCloseHandler의 onBackPressed()로 연결해준다.
+            //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            backPressCloseHandler.onBackPressed();
         }
     }
 }

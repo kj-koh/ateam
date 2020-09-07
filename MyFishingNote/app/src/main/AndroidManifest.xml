@@ -15,10 +15,11 @@
         android:roundIcon="@drawable/fish1_jpg"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".FABActivity"></activity>
         <activity
             android:name=".ui.note.AddNote"
             android:label="@string/title_activity_add_note"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.member.ui.login.LoginActivity"
             android:label="@string/title_activity_login" />
