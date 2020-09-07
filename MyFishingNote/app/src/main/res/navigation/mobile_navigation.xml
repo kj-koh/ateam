@@ -15,7 +15,7 @@
         android:id="@+id/nav_tide"
         android:name="com.example.myfishingnote.ui.tide.TideFragment"
         android:label="@string/menu_tide"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_tide" />
 
     <fragment
         android:id="@+id/nav_suggest"

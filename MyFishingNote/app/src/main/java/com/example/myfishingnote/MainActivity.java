@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment) != homeFragment) {
             getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
         //Home에서는 BackPressCloseHandler의 onBackPressed()로 연결해준다.
-            //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
+        //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
         } else {
             //super.onBackPressed();
             backPressCloseHandler.onBackPressed();
