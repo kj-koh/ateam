@@ -1,11 +1,14 @@
 package com.example.myfishingnote;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
@@ -17,6 +20,7 @@ import com.example.myfishingnote.ui.tide.TideFragment;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -67,11 +71,18 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        //앱종료를 위한 back버튼 선언
-        backPressCloseHandler = new BackPressCloseHandler(this);
-
         //activity_main_xml화면을 붙여준다
-        setContentView(R.layout.activity_main);
+        /**
+         * 뷰 객체를 미리 담아서 같은 뷰를 참조하게 만듦
+         */
+        View rootView = getLayoutInflater().from(this).inflate(R.layout.activity_main, null);
+        setContentView(rootView);
+
+        //앱종료를 위한 back버튼 선언
+        /**
+         * 뷰를 생성자로 할당
+         */
+        backPressCloseHandler = new BackPressCloseHandler(this, rootView);
 
         //툴바 선언
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -91,9 +102,7 @@ public class MainActivity extends AppCompatActivity {
         /* 프래그먼트 설정을 메소드로 뺐습니다.. (보기 편하게) */
         fragmentSettings();
 
-        /**
-         * fab 관련
-         */
+        /* fab 관련 */
         fabAdd = findViewById(R.id.fabAdd);
         fabAddNote = findViewById(R.id.fabAddNote);
         fabCamera = findViewById(R.id.fabCamera);
@@ -137,9 +146,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
+<<<<<<< HEAD
 
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 startActivity(intent);
+=======
+                Snackbar.make(view, "!!!!", Snackbar.LENGTH_SHORT).show();
+>>>>>>> 65e463bebf2c4136ccdd88dfc9367da663c4f2f5
             }
         });
 
@@ -159,11 +172,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+<<<<<<< HEAD
     /**
      * fab 토글 액션 show/hide
      * @param view
      */
     /*private void toggleFab() {
+=======
+    /* fab 토글 액션 */
+    private void toggleFab() {
+>>>>>>> 65e463bebf2c4136ccdd88dfc9367da663c4f2f5
         if (isFabOpen) {
             fabAdd.animate()
                     .rotationBy(225)
@@ -204,10 +222,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    /**
-     * 프래그먼트 설정 메소드
-     */
+    /* 프래그먼트 설정 메소드 */
     private void fragmentSettings() {
 
         /* 프래그먼트 객체 생성 */
@@ -295,4 +310,5 @@ public class MainActivity extends AppCompatActivity {
             backPressCloseHandler.onBackPressed();
         }
     }
+
 }
