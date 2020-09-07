@@ -6,8 +6,6 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
 import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
@@ -22,10 +20,6 @@ import com.google.android.material.navigation.NavigationView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
-<<<<<<< Updated upstream
-import androidx.fragment.app.Fragment;
-=======
->>>>>>> Stashed changes
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -38,23 +32,6 @@ import androidx.appcompat.widget.Toolbar;
 public class MainActivity extends AppCompatActivity {
 
     //화면 상단 main.xml
-<<<<<<< Updated upstream
-    //drawer
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
-    ActionBarDrawerToggle drawerToggle;
-    Toolbar toolbar;
-
-    /**
-     * 프래그먼트 선언
-     */
-    HomeFragment homeFragment;
-    TideFragment tideFragment;
-    SuggestFragment suggestFragment;
-    NoteFragment noteFragment;
-    MapsFragment mapsFragment;
-
-=======
 
     //drawer선언
     private DrawerLayout drawerLayout;
@@ -74,21 +51,20 @@ public class MainActivity extends AppCompatActivity {
     private boolean isFabOpen = false;
 
     private BackPressCloseHandler backPressCloseHandler;
->>>>>>> Stashed changes
 
     private AppBarConfiguration mAppBarConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        //splash테마 변경
+        //초기에 세팅된 splash테마를 onCreate시에 일반테마로 변경
+        //intro처리
         setTheme(R.style.AppTheme);
 
-        //ID존재 여부 확인
-
-        //DB확인
-
         super.onCreate(savedInstanceState);
+
+        //앱종료를 위한 back버튼 선언
+        backPressCloseHandler = new BackPressCloseHandler(this);
 
         //activity_main_xml화면을 붙여준다
         setContentView(R.layout.activity_main);
@@ -96,19 +72,8 @@ public class MainActivity extends AppCompatActivity {
         //툴바 선언
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-        //액션바 선언 및 플로팅 액션버튼
+        //액션바 선언
         setSupportActionBar(toolbar);
-<<<<<<< Updated upstream
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                Intent intent = new Intent(MainActivity.this, AddNote.class);
-                startActivity(intent);
-
-=======
 
         //Drawer붙여주기
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -149,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         fabCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
->>>>>>> Stashed changes
 
             }
         });
@@ -254,14 +218,20 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
+    //메인화면에서 Back Button처리
     @Override
     public void onBackPressed() {
+        //Drawer가 열려있으면 Drawer를 닫아준다
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawers();
+            //Home이 아니면 Home으로 변경해준다.
         } else if (getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment) != homeFragment) {
             getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
+        //Home에서는 BackPressCloseHandler의 onBackPressed()로 연결해준다.
+            //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            backPressCloseHandler.onBackPressed();
         }
     }
 }
