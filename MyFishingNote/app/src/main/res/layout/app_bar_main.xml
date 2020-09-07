@@ -50,37 +50,31 @@
             app:fabSize="mini"
             app:rippleColor="@color/white" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddNote"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:src="@drawable/baseline_create_24"
-        android:tint="@color/grey_80"
-        app:backgroundTint="@color/grey_20"
-        app:fabSize="mini"
-        app:rippleColor="@color/white" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:src="@drawable/baseline_create_24"
+            android:tint="@color/grey_80"
+            app:backgroundTint="@color/grey_20"
+            app:fabSize="mini"
+            app:rippleColor="@color/white" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabAdd"
-
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-
-
             android:layout_marginLeft="18dp"
             android:layout_marginTop="10dp"
             android:layout_marginRight="18dp"
             android:layout_marginBottom="18dp"
             android:src="@drawable/ic_add"
-
-
             app:backgroundTint="#D81B60"
             app:fabSize="normal"
             app:rippleColor="@color/white" />
-
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
