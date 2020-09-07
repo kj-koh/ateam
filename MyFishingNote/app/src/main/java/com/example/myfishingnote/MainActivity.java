@@ -9,6 +9,7 @@ import android.view.View;
 
 import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
+import com.example.myfishingnote.ui.note.AddNote;
 import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
@@ -47,10 +48,13 @@ public class MainActivity extends AppCompatActivity {
     private MapsFragment mapsFragment;
 
     /* fab 선언 */
-    private FloatingActionButton fabAdd, fabAddNote, fabCamera;
+    private FloatingActionButton fabAdd, fabAddNote, fabCamera, fabMap;
     private boolean isFabOpen = false;
 
+    //뒤로가기 버튼 선언
     private BackPressCloseHandler backPressCloseHandler;
+
+
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -93,21 +97,49 @@ public class MainActivity extends AppCompatActivity {
         fabAdd = findViewById(R.id.fabAdd);
         fabAddNote = findViewById(R.id.fabAddNote);
         fabCamera = findViewById(R.id.fabCamera);
+        fabMap = findViewById(R.id.fabMap);
+
 
         fabAddNote.hide();
         fabCamera.hide();
+        fabMap.hide();
 
+        //focus변경시 fab버튼 원상복귀
+        fabAdd.setFocusable(true);
+        fabAdd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+
+                if (hasFocus != true) {
+                        fabAdd.animate()
+                                .rotationBy(135)
+                                .setDuration(100)
+                                .start();
+                        fabAddNote.hide();
+                        fabCamera.hide();
+                        fabMap.hide();
+                        isFabOpen = false;
+
+                }
+            }
+        });
+
+        //FAB 클릭시 처리
         fabAdd.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
-                toggleFab();
+                toggleFab(view);
             }
         });
 
         fabAddNote.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
 
+                Intent intent = new Intent(MainActivity.this, AddNote.class);
+                startActivity(intent);
             }
         });
 
@@ -118,27 +150,56 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        fabMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
     }
 
     /**
-     * fab 토글 액션
+     * fab 토글 액션 show/hide
+     * @param view
      */
-    private void toggleFab() {
+    /*private void toggleFab() {
         if (isFabOpen) {
             fabAdd.animate()
-                    .rotationBy(135)
-                    .setDuration(700)
+                    .rotationBy(225)
+                    .setDuration(300)
                     .start();
             fabAddNote.hide();
             fabCamera.hide();
+            fabMap.hide();
             isFabOpen = false;
         } else {
             fabAdd.animate()
-                    .rotationBy(135)
-                    .setDuration(700)
+                    .rotationBy(225)
+                    .setDuration(300)
                     .start();
             fabAddNote.show();
             fabCamera.show();
+            fabMap.show();
+            isFabOpen = true;
+        }
+    }*/
+
+    /** 토글액션2 상하fade
+    *
+    */
+    private void toggleFab(View view) {
+        if (isFabOpen) {
+           ViewAnimation.rotateFab(view, false);
+           ViewAnimation.showOut(fabAddNote);
+           ViewAnimation.showOut(fabCamera);
+           ViewAnimation.showOut(fabMap);
+            isFabOpen = false;
+        } else {
+            ViewAnimation.rotateFab(view, true);
+            ViewAnimation.showIn(fabAddNote);
+            ViewAnimation.showIn(fabCamera);
+            ViewAnimation.showIn(fabMap);
             isFabOpen = true;
         }
     }
