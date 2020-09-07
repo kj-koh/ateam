@@ -4,28 +4,22 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Menu;
-import android.widget.Toast;
+import android.view.View;
 
-import com.example.myfishingnote.databinding.ActivityFabBinding;
 import com.example.myfishingnote.ui.home.HomeFragment;
-import com.example.myfishingnote.ui.map.MapFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
-import com.example.myfishingnote.ui.note.AddNote;
 import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
 import com.example.myfishingnote.ui.tide.TideFragment;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
-import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -40,26 +34,23 @@ public class MainActivity extends AppCompatActivity {
     //화면 상단 main.xml
 
     //drawer선언
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
-    ActionBarDrawerToggle drawerToggle;
-    Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle drawerToggle;
+    private Toolbar toolbar;
 
-    //AniamtedFAB사용을 위한 바인딩과 애니메이션 처리준비
-    ActivityFabBinding bi;
-    boolean isRotate = false;
+    /* 프래그먼트 선언 */
+    private HomeFragment homeFragment;
+    private TideFragment tideFragment;
+    private SuggestFragment suggestFragment;
+    private NoteFragment noteFragment;
+    private MapsFragment mapsFragment;
 
-    /**
-     * 프래그먼트 선언
-     */
-    HomeFragment homeFragment;
-    TideFragment tideFragment;
-    SuggestFragment suggestFragment;
-    NoteFragment noteFragment;
-    MapsFragment mapsFragment;
+    /* fab 선언 */
+    private FloatingActionButton fabAdd, fabAddNote, fabCamera;
+    private boolean isFabOpen = false;
 
     private BackPressCloseHandler backPressCloseHandler;
-
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -84,77 +75,81 @@ public class MainActivity extends AppCompatActivity {
         //액션바 선언
         setSupportActionBar(toolbar);
 
-        //액션 버튼
-       /* FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                *//*Snackbar.make(view, "Create a new note", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*//*
-                Intent intent = new Intent(MainActivity.this, AddNote.class);
-                startActivity(intent);
-            }
-        });*/
-
-
-        //app_bar_main과 바인딩
-        bi = DataBindingUtil.setContentView(this, R.layout.app_bar_main);
-        //fabAdd에 클릭리스너 붙여준다
-      /*  bi.fabAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isRotate = ViewAnimation.rotateFab(v, isRotate);
-            }
-        });*/
-
-        ViewAnimation.init(bi.fabCamera);
-        ViewAnimation.init(bi.fabAddNote);
-
-        //fab
-        bi.fabAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isRotate = ViewAnimation.rotateFab(v, !isRotate);
-                if(isRotate){
-                    ViewAnimation.showIn(bi.fabCamera);
-                    ViewAnimation.showIn(bi.fabAddNote);
-                }else{
-                    ViewAnimation.showOut(bi.fabCamera);
-                    ViewAnimation.showOut(bi.fabAddNote);
-                }
-
-            }
-        });
-
-        //미니FAB의 클릭 리스너 2개
-        bi.fabCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Camera", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        bi.fabAddNote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Toast.makeText(MainActivity.this, "AddNote", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         //Drawer붙여주기
         drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
 
-        // Drawer 토글 버튼 활성화
+        /* 액션바에 Drawer Toggle 버튼 추가하기 */
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
+        /* 프래그먼트 설정을 메소드로 뺐습니다.. (보기 편하게) */
+        fragmentSettings();
+
         /**
-         * 프래그먼트 객체생성
+         * fab 관련
          */
+        fabAdd = findViewById(R.id.fabAdd);
+        fabAddNote = findViewById(R.id.fabAddNote);
+        fabCamera = findViewById(R.id.fabCamera);
+
+        fabAddNote.hide();
+        fabCamera.hide();
+
+        fabAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleFab();
+            }
+        });
+
+        fabAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        fabCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+    }
+
+    /**
+     * fab 토글 액션
+     */
+    private void toggleFab() {
+        if (isFabOpen) {
+            fabAdd.animate()
+                    .rotationBy(135)
+                    .setDuration(700)
+                    .start();
+            fabAddNote.hide();
+            fabCamera.hide();
+            isFabOpen = false;
+        } else {
+            fabAdd.animate()
+                    .rotationBy(135)
+                    .setDuration(700)
+                    .start();
+            fabAddNote.show();
+            fabCamera.show();
+            isFabOpen = true;
+        }
+    }
+
+
+    /**
+     * 프래그먼트 설정 메소드
+     */
+    private void fragmentSettings() {
+
+        /* 프래그먼트 객체 생성 */
         homeFragment = new HomeFragment();
         tideFragment = new TideFragment();
         suggestFragment = new SuggestFragment();
@@ -163,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
 
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -231,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             //Home이 아니면 Home으로 변경해준다.
         } else if (getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment) != homeFragment) {
             getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
-        //Home에서는 BackPressCloseHandler의 onBackPressed()로 연결해준다.
+            //Home에서는 BackPressCloseHandler의 onBackPressed()로 연결해준다.
             //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
         } else {
             //super.onBackPressed();
