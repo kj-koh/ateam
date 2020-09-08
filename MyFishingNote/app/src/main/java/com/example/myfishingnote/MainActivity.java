@@ -24,6 +24,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fabAdd, fabAddNote, fabCamera, fabMap;
     private boolean isFabOpen = false;
 
+
     //뒤로가기 버튼 선언
     private BackPressCloseHandler backPressCloseHandler;
 
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
 
         //초기에 세팅된 splash테마를 onCreate시에 일반테마로 변경
         //intro처리
@@ -86,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         //툴바 선언
         Toolbar toolbar = findViewById(R.id.toolbar);
+
 
         //액션바 선언
         setSupportActionBar(toolbar);
@@ -146,13 +150,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-<<<<<<< HEAD
+
 
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 startActivity(intent);
-=======
+
                 Snackbar.make(view, "!!!!", Snackbar.LENGTH_SHORT).show();
->>>>>>> 65e463bebf2c4136ccdd88dfc9367da663c4f2f5
             }
         });
 
@@ -172,16 +175,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-<<<<<<< HEAD
     /**
      * fab 토글 액션 show/hide
-     * @param view
+     *
      */
     /*private void toggleFab() {
-=======
     /* fab 토글 액션 */
     private void toggleFab() {
->>>>>>> 65e463bebf2c4136ccdd88dfc9367da663c4f2f5
         if (isFabOpen) {
             fabAdd.animate()
                     .rotationBy(225)
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
             fabMap.show();
             isFabOpen = true;
         }
-    }*/
+    }
 
     /** 토글액션2 상하fade
     *
@@ -307,7 +307,8 @@ public class MainActivity extends AppCompatActivity {
         //onBackPressed : 클릭을 2번해야 나갈 수 있게 한다
         } else {
             //super.onBackPressed();
-            backPressCloseHandler.onBackPressed();
+            CoordinatorLayout fabMain = findViewById(R.id.fabMain);
+            backPressCloseHandler.onBackPressed(fabMain);
         }
     }
 
