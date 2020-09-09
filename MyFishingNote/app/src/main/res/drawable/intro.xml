@@ -13,7 +13,7 @@
                 android:src="@drawable/fish_jpg"/>-->
             <bitmap
                 android:gravity="center"
-                android:src="@drawable/logo"/>
+                android:src="@drawable/logo192px"/>
         </item>
     </layer-list>
 

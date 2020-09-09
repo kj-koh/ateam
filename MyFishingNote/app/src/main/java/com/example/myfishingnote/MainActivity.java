@@ -1,39 +1,44 @@
 package com.example.myfishingnote;
 
-import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
-
-import com.example.myfishingnote.ui.home.HomeFragment;
-import com.example.myfishingnote.ui.map.MapsFragment;
-import com.example.myfishingnote.ui.note.AddNote;
-import com.example.myfishingnote.ui.note.NoteFragment;
-import com.example.myfishingnote.ui.settings.SettingsActivity;
-import com.example.myfishingnote.ui.suggest.SuggestFragment;
-import com.example.myfishingnote.ui.tide.TideFragment;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+
+import com.example.myfishingnote.ui.help.HelpActivity;
+import com.example.myfishingnote.ui.home.HomeFragment;
+import com.example.myfishingnote.ui.map.MapsFragment;
+import com.example.myfishingnote.ui.member.ui.login.LoginActivity;
+import com.example.myfishingnote.ui.note.AddNote;
+import com.example.myfishingnote.ui.note.NoteFragment;
+import com.example.myfishingnote.ui.settings.SettingsActivity;
+import com.example.myfishingnote.ui.suggest.SuggestFragment;
+import com.example.myfishingnote.ui.tide.TideFragment;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,11 +61,10 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fabAdd, fabAddNote, fabCamera, fabMap;
     private boolean isFabOpen = false;
 
+    private File file;
 
     //뒤로가기 버튼 선언
     private BackPressCloseHandler backPressCloseHandler;
-
-
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -112,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         fabCamera = findViewById(R.id.fabCamera);
         fabMap = findViewById(R.id.fabMap);
 
-
         fabAddNote.hide();
         fabCamera.hide();
         fabMap.hide();
@@ -152,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
 
+
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 startActivity(intent);
 
@@ -162,18 +166,34 @@ public class MainActivity extends AppCompatActivity {
         fabCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                takePicture();
             }
         });
 
         fabMap.setOnClickListener(new View.OnClickListener() {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             @Override
             public void onClick(View view) {
+                transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
 
             }
         });
 
-    }
+        //navHeader를 클릭하면 로그인 페이지를 띄운다
+        NavigationView navView = (NavigationView)findViewById(R.id.nav_view);
+        View header = navView.getHeaderView(0);
+        LinearLayout navForm = header.findViewById(R.id.nav_form);
+        navForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+
+    }//onCreate()
 
     /**
      * fab 토글 액션 show/hide
@@ -234,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
 
+        //NavigationDrawer 메뉴설정
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -247,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 switch (item.getItemId()) {
+
                     case R.id.nav_home :
                         transaction.replace(R.id.nav_host_fragment, homeFragment).commit();
                         break;
@@ -271,12 +293,20 @@ public class MainActivity extends AppCompatActivity {
                         // Toast.makeText(MainActivity.this, "help", Toast.LENGTH_SHORT).show();
                         // Intent intent = new Intent(MainActivity.this, HelpActivity.class);
                         // startActivity(intent);
+
+                        intent = new Intent(MainActivity.this, HelpActivity.class);
+                        startActivity(intent);
                         break;
                 }
 
                 return false;
             }
         });
+
+
+
+
+
 
     }
 
@@ -310,6 +340,27 @@ public class MainActivity extends AppCompatActivity {
             CoordinatorLayout fabMain = findViewById(R.id.fabMain);
             backPressCloseHandler.onBackPressed(fabMain);
         }
+    }
+
+    public void takePicture() {
+        if (file == null) {
+            file = createFile();
+        }//if
+
+        Uri fileUri = FileProvider.getUriForFile(this, "com.example.myfishingnote.fileprovider", file);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent,101);
+        }//if
+
+    }//takePicture
+
+    private File createFile() {
+        String filename = "capture.jpg";
+        File storageDir = Environment.getExternalStoragePublicDirectory(filename);
+        File outFile = new File(storageDir, filename);
+        return outFile;
     }
 
 }
