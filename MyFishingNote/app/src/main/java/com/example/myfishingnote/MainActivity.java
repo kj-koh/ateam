@@ -61,11 +61,13 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fabAdd, fabAddNote, fabCamera, fabMap;
     private boolean isFabOpen = false;
 
+    //카메라 file선언
     private File file;
 
     //뒤로가기 버튼 선언
     private BackPressCloseHandler backPressCloseHandler;
 
+    //appbar 선언
     private AppBarConfiguration mAppBarConfiguration;
 
     @Override
@@ -94,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         //툴바 선언
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-
         //액션바 선언
         setSupportActionBar(toolbar);
 
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         fabCamera.hide();
         fabMap.hide();
 
-        //focus변경시 fab버튼 원상복귀
+        //focus변경시 fab버튼 원상복귀 : 동작 안됨
         fabAdd.setFocusable(true);
         fabAdd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -140,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //FAB 클릭시 처리
+        //FAB 클릭시 처리 : 스낵바 정상작동 안됨
         fabAdd.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -149,12 +150,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //노트
         fabAddNote.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-
-
 
                 Intent intent = new Intent(MainActivity.this, AddNote.class);
                 startActivity(intent);
@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //카메라
         fabCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -170,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //지도
         fabMap.setOnClickListener(new View.OnClickListener() {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             @Override

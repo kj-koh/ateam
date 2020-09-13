@@ -5,12 +5,18 @@
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the "MyLocation" functionality.
+         구글맵을 사용하기 위한 권한
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- 외장 메모리 읽기 쓰기 권한 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
+    <!-- 카메라를 사용하기 위한 권한이나 현재 camera2로 변경된것인지
+         권한부분을 재확인 할 필요가 있음.
+    -->
     <uses-feature android:name="android.hardware.camera"
         android:required="true"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -18,9 +24,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/logofishandroid01"
+        android:icon="@drawable/fnlogo05"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/logofishandroid01"
+        android:roundIcon="@drawable/fnlogo05"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
