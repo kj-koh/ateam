@@ -49,14 +49,16 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity
-        {
+public class MainActivity extends AppCompatActivity  {
+
+    //public Bundle bundle = null;
 
     //구글 맵 관련 선언
     private GoogleMap mMap;
@@ -66,6 +68,8 @@ public class MainActivity extends AppCompatActivity
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int UPDATE_INTERVAL_MS = 1000;
     private static final int FASTEST_UPDATE_INTERVAL_MS =500;
+    LocationManager manager;
+    MarkerOptions myMarker;
 
     //onRequestPermissionResul에서 수신한 결과에서
     // ActivityCompat.requestPermissions를 사용한
@@ -75,14 +79,17 @@ public class MainActivity extends AppCompatActivity
 
     //앱을 실행하기 위해 필요한 퍼미션을 정의 합니다.
     String[] REQUIRED_PERMISSIONS ={Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION};
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_WIFI_STATE,
+                                    Manifest.permission.ACCESS_NETWORK_STATE
+                                    };
 
     Location mCurrentLocation;
     LatLng currentPosition;
 
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest locationRequest;
-    private Location location;
+    public static Location location;
 
     //스낵바 사용하기 위해서는 View가 필요함
     //토스트는 Context가 필요함
@@ -124,6 +131,7 @@ public class MainActivity extends AppCompatActivity
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);*/
 
         checkDangerousPermissions();
+        //bundle = new Bundle();
         startLocationService();
 
 
@@ -133,6 +141,10 @@ public class MainActivity extends AppCompatActivity
         setTheme(R.style.AppTheme);
 
         super.onCreate(savedInstanceState);
+
+        //구글맵 내위치 표시
+
+        //showMyLocationMarker(location);
 
         //activity_main_xml화면을 붙여준다
         /**
@@ -246,14 +258,17 @@ public class MainActivity extends AppCompatActivity
         });
 
         //지도
-        /*fabMap.setOnClickListener(new View.OnClickListener() {
+        fabMap.setOnClickListener(new View.OnClickListener() {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             @Override
             public void onClick(View view) {
                 transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
 
             }
-        });//FAB setOnClickListener*/
+        });//FAB setOnClickListener
+
+        //지도에 위치 표시
+
 
         //navHeader를 클릭하면 로그인 페이지를 띄운다
         NavigationView navView = (NavigationView)findViewById(R.id.nav_view);
@@ -361,6 +376,10 @@ public class MainActivity extends AppCompatActivity
                         transaction.replace(R.id.nav_host_fragment, noteFragment).commit();
                         break;
                     case R.id.nav_map :
+                        String lat = String.valueOf(location.getLatitude());
+                        String lon = String.valueOf(location.getLongitude());
+                        //bundle.putString("latitude", lat);
+                        //bundle.putString("longitude", lon);
                         transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
                         break;
                     case R.id.nav_settings :
@@ -863,10 +882,24 @@ public class MainActivity extends AppCompatActivity
         }
     }*/
 
+            /*private void showMyLocationMarker(Location location) {
+                if(myMarker == null) {
+                    myMarker = new MarkerOptions();
+                    myMarker.position(new LatLng(location.getLatitude(), location.getLongitude()));
+                    myMarker.title("현재위치");
+                    myMarker.snippet("내위치");
+                    myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.mylocation));
+                    mMap.addMarker(myMarker);
+                }//if
+            }//showMyLocationMarker()*/
+
+
+
+
 
         private void startLocationService() {
             //위치관리자 객체 참조
-            LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
             //위치정보를 받을 리스너 생성
             GPSListener gpsListener = new GPSListener();
@@ -877,10 +910,10 @@ public class MainActivity extends AppCompatActivity
                 manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, gpsListener);
                 manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTime, minDistance, gpsListener);
 
-                Location lastLocation = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if(lastLocation != null) {
-                    Double latitude = lastLocation.getLatitude();
-                    Double longgitude = lastLocation.getLongitude();
+                location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                if(location != null) {
+                    Double latitude = location.getLatitude();
+                    Double longgitude = location.getLongitude();
 
                     String msg = "Latitude : " + latitude + "\nLongitude : " + longgitude;
 
@@ -920,6 +953,7 @@ public class MainActivity extends AppCompatActivity
             }
         }//GPSListener()
 
+            //권한설정
         private void checkDangerousPermissions() {
             String[] permissions = {
                     Manifest.permission.INTERNET,
@@ -963,4 +997,5 @@ public class MainActivity extends AppCompatActivity
                     }//for
                 }//if
             }
+
         }//MainActivity

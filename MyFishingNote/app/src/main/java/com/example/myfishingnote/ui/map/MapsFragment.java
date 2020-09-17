@@ -1,24 +1,41 @@
 package com.example.myfishingnote.ui.map;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
+import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.example.myfishingnote.MainActivity;
+import com.example.myfishingnote.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import com.example.myfishingnote.R;
+import static com.example.myfishingnote.MainActivity.location;
 
 public class MapsFragment extends Fragment {
+
+   private static final String TAG = "MapsFragment";
+
+   //Location location;
+
+
+
+    SupportMapFragment mapFragment;
+    GoogleMap map;
+    MarkerOptions myMarker;
+    MainActivity activity ;
+
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -33,11 +50,51 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
-            LatLng sydney = new LatLng(-34, 151);
+            activity = (MainActivity) getActivity();
+
+            /*LatLng sydney = new LatLng(-34, 151);
             googleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        }
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
+            Log.d(TAG, "onMapReady: 지도 준비 완료");
+            map = googleMap;
+            //map.setMyLocationEnabled(true);
+
+            showMyLocationMarker(location);
+            showCurrentLocation(location);
+
+
+
+        }//onMapReady()
     };
+
+    private void showCurrentLocation(Location location) {
+        LatLng curPoint = new LatLng(location.getLatitude(), location.getLongitude());
+        String msg = "\n위도 : " + curPoint.latitude + "\n경도 : " + curPoint.longitude;
+
+        Log.d(TAG, "showCurrentLocation: " + msg);
+
+        //Toast.makeText(this, "msg", Toast.LENGTH_SHORT).show();
+
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(curPoint, 15));
+
+        //마커찍기
+        Location markerLocation = new Location("");
+        markerLocation.setLatitude(35.153817);
+        markerLocation.setLongitude(126.8889);
+        showMyLocationMarker(markerLocation);
+
+    }//showCurrentLocation()
+
+    private void showMyLocationMarker(Location location) {
+        if(myMarker == null) {
+            myMarker = new MarkerOptions();
+            myMarker.position(new LatLng(location.getLatitude(), location.getLongitude()));
+            myMarker.title("현재위치");
+            myMarker.snippet("내위치");
+            myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.mylocation));
+            map.addMarker(myMarker);
+        }
+    }
 
     @Nullable
     @Override
@@ -54,6 +111,8 @@ public class MapsFragment extends Fragment {
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(callback);
-        }
-    }
-}
+
+
+        }//if
+    }//onViewCreated()
+}//class
