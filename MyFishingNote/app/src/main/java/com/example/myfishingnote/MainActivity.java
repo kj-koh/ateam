@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -132,7 +131,7 @@ public class MainActivity extends AppCompatActivity  {
 
         checkDangerousPermissions();
         //bundle = new Bundle();
-        startLocationService();
+        //startLocationService();
 
 
 
@@ -141,6 +140,9 @@ public class MainActivity extends AppCompatActivity  {
         setTheme(R.style.AppTheme);
 
         super.onCreate(savedInstanceState);
+
+
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         //구글맵 내위치 표시
 
@@ -376,8 +378,8 @@ public class MainActivity extends AppCompatActivity  {
                         transaction.replace(R.id.nav_host_fragment, noteFragment).commit();
                         break;
                     case R.id.nav_map :
-                        String lat = String.valueOf(location.getLatitude());
-                        String lon = String.valueOf(location.getLongitude());
+                        //String lat = String.valueOf(location.getLatitude());
+                        //String lon = String.valueOf(location.getLongitude());
                         //bundle.putString("latitude", lat);
                         //bundle.putString("longitude", lon);
                         transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
@@ -897,7 +899,7 @@ public class MainActivity extends AppCompatActivity  {
 
 
 
-        private void startLocationService() {
+       /* private void startLocationService() {
             //위치관리자 객체 참조
             manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -951,7 +953,7 @@ public class MainActivity extends AppCompatActivity  {
             public void onProviderDisabled(String provider) {
 
             }
-        }//GPSListener()
+        }//GPSListener()*/
 
             //권한설정
         private void checkDangerousPermissions() {
