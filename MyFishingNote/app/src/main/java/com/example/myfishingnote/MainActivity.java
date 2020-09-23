@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -53,6 +54,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.example.myfishingnote.ui.tide.ObsDTO;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -64,6 +66,7 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity  {
 
     public Bundle  tidebundle;
+    private Context context;
 
     //구글 맵 관련 선언
     private GoogleMap mMap;
@@ -140,6 +143,7 @@ public class MainActivity extends AppCompatActivity  {
         //startLocationService();
 
 
+
        //AsyncTask
         long now = System.currentTimeMillis();
         Date date = new Date(now);
@@ -165,7 +169,8 @@ public class MainActivity extends AppCompatActivity  {
         Log.d(TAG, "Async: " + Time);
         //Log.d(TAG, "Async: " + strUrl);
         //asynctask
-        OpenAPI task = new OpenAPI(latLng);
+        OpenAPI task = new OpenAPI(latLng, context);
+
 
         try {
             data = task.execute().get();
@@ -202,14 +207,7 @@ public class MainActivity extends AppCompatActivity  {
 
         super.onCreate(savedInstanceState);
 
-
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-
-
-
-
-
 
         //구글맵 내위치 표시
 
@@ -354,8 +352,6 @@ public class MainActivity extends AppCompatActivity  {
         fragmentSettings();
 
     }//onCreate()
-
-
 
 
             /**
