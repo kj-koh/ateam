@@ -5,8 +5,6 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.json.JSONArray;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,11 +15,10 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class OpenAPI extends AsyncTask<String, Void, JSONArray> {
+public class OpenAPI extends AsyncTask<String, Void, String> {
     private static final String TAG = "OpenAPI";
 
     private LatLng mylatLng;
-
 
 
     public OpenAPI(LatLng latLng) {
@@ -29,7 +26,7 @@ public class OpenAPI extends AsyncTask<String, Void, JSONArray> {
     }//생성자
 
     @Override
-    protected JSONArray doInBackground(String... strUrls) {
+    protected String doInBackground(String... strUrls) {
 
         long now = System.currentTimeMillis();
         Date date = new Date(now);
@@ -74,18 +71,20 @@ public class OpenAPI extends AsyncTask<String, Void, JSONArray> {
 
 
 
-
-
-
-
             conn.disconnect();
             bufferedReader.close();
+            return data;
 
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }//doinbackgound()
+
+    @Override
+    protected void onPostExecute(String result) {
+
+    }
 
     private String findObsCode(LatLng mylatLng) {
 

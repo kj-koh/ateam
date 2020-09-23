@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -57,8 +58,12 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
+
 
 public class MainActivity extends AppCompatActivity  {
+
+    public Bundle  tidebundle;
 
     //구글 맵 관련 선언
     private GoogleMap mMap;
@@ -122,6 +127,7 @@ public class MainActivity extends AppCompatActivity  {
 
     //좌표값 저장 변수 선언
     LatLng latLng = null;
+    public String data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +136,7 @@ public class MainActivity extends AppCompatActivity  {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);*/
 
         checkDangerousPermissions();
-        //bundle = new Bundle();
+        tidebundle = new Bundle();
         //startLocationService();
 
 
@@ -160,7 +166,15 @@ public class MainActivity extends AppCompatActivity  {
         //Log.d(TAG, "Async: " + strUrl);
         //asynctask
         OpenAPI task = new OpenAPI(latLng);
-        task.execute();
+
+        try {
+            data = task.execute().get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         /*try {
             OpenAPI task = new OpenAPI(strUrl);
             jsonArray = task.execute(strUrl).get();
@@ -250,9 +264,6 @@ public class MainActivity extends AppCompatActivity  {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        /* 프래그먼트 설정을 메소드로 뺐습니다.. (보기 편하게) */
-        fragmentSettings();
-
         /* fab 관련 */
         fabAdd = findViewById(R.id.fabAdd);
         fabAddNote = findViewById(R.id.fabAddNote);
@@ -338,6 +349,9 @@ public class MainActivity extends AppCompatActivity  {
         });//navForm.setOnClickListener
 
 
+        /* 프래그먼트 설정을 메소드로 뺐습니다.. (보기 편하게) */
+        tidebundle.putString("data", data);
+        fragmentSettings();
 
     }//onCreate()
 
@@ -402,6 +416,7 @@ public class MainActivity extends AppCompatActivity  {
         mapsFragment = new MapsFragment();
 
         getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, homeFragment).commit();
+        //tideFragment.setArguments(tidebundle);
 
         //NavigationDrawer 메뉴설정
         NavigationView navigationView = findViewById(R.id.nav_view);
