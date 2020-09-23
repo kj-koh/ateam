@@ -10,10 +10,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -41,10 +43,8 @@ import com.example.myfishingnote.ui.note.AddNote;
 import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
+import com.example.myfishingnote.ui.tide.OpenAPI;
 import com.example.myfishingnote.ui.tide.TideFragment;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -54,10 +54,11 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity  {
-
-    //public Bundle bundle = null;
 
     //구글 맵 관련 선언
     private GoogleMap mMap;
@@ -83,19 +84,12 @@ public class MainActivity extends AppCompatActivity  {
                                     Manifest.permission.ACCESS_NETWORK_STATE
                                     };
 
-    Location mCurrentLocation;
-    LatLng currentPosition;
 
-    private FusedLocationProviderClient mFusedLocationClient;
-    private LocationRequest locationRequest;
     public static Location location;
 
     //스낵바 사용하기 위해서는 View가 필요함
     //토스트는 Context가 필요함
     //private View mLayout;
-
-
-
 
     //drawer선언
     private DrawerLayout drawerLayout;
@@ -123,6 +117,12 @@ public class MainActivity extends AppCompatActivity  {
     //appbar 선언
     private AppBarConfiguration mAppBarConfiguration;
 
+    ArrayList<String> arrayList;
+    ArrayAdapter<String> arrayAdapter;
+
+    //좌표값 저장 변수 선언
+    LatLng latLng = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -134,6 +134,53 @@ public class MainActivity extends AppCompatActivity  {
         //startLocationService();
 
 
+       //AsyncTask
+        long now = System.currentTimeMillis();
+        Date date = new Date(now);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String Today = sdf.format(date);
+        sdf = new SimpleDateFormat("hhmmss");
+        String Time = sdf.format(date);
+
+         /*
+        //조석 자료 데이터 타입
+        String DataType = "tideObsPreTab";
+
+        String ServiceKey = "T7qAa8L36BfkMpmavM9hsw==";
+        String ObsCode = "DT_0001";     //임시값 인천
+
+        String strUrl = "http://www.khoa.go.kr/oceangrid/grid/api/" +
+                DataType + "/search.do?ServiceKey=" +
+                ServiceKey +"&ObsCode=" + ObsCode + "+&Date="+Today+"&ResultType=json";
+
+         */
+
+        Log.d(TAG, "Async: " + Today);
+        Log.d(TAG, "Async: " + Time);
+        //Log.d(TAG, "Async: " + strUrl);
+        //asynctask
+        OpenAPI task = new OpenAPI(latLng);
+        task.execute();
+        /*try {
+            OpenAPI task = new OpenAPI(strUrl);
+            jsonArray = task.execute(strUrl).get();
+            arrayList = new ArrayList<>();
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+              JSONObject jsonObject = jsonArray.getJSONObject(i);
+              arrayList.add(jsonObject.getString("LINE_LIST"));
+
+              Log.d(TAG, "\njson : " + jsonObject.getString("LINE_LIST"));
+          }
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+*/
 
         //초기에 세팅된 splash테마를 onCreate시에 일반테마로 변경
         //intro처리
@@ -143,6 +190,12 @@ public class MainActivity extends AppCompatActivity  {
 
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+
+
+
+
+
 
         //구글맵 내위치 표시
 
@@ -159,7 +212,7 @@ public class MainActivity extends AppCompatActivity  {
         //나의 메인xml은 drawer이므로 일단 drawer로 설정
         //mLayout = findViewById(R.id.drawer_layout);
 
-        locationRequest = new LocationRequest()
+        /*locationRequest = new LocationRequest()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(UPDATE_INTERVAL_MS)
                 .setFastestInterval(FASTEST_UPDATE_INTERVAL_MS);
@@ -167,7 +220,7 @@ public class MainActivity extends AppCompatActivity  {
         LocationSettingsRequest.Builder builder =
                 new LocationSettingsRequest.Builder();
 
-        builder.addLocationRequest(locationRequest);
+        builder.addLocationRequest(locationRequest);*/
 
         /*mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -261,10 +314,10 @@ public class MainActivity extends AppCompatActivity  {
 
         //지도
         fabMap.setOnClickListener(new View.OnClickListener() {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            //FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             @Override
             public void onClick(View view) {
-                transaction.replace(R.id.nav_host_fragment, mapsFragment).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, mapsFragment).commit();
 
             }
         });//FAB setOnClickListener
