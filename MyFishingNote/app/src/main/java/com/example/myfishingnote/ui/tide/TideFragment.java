@@ -24,8 +24,6 @@ public class TideFragment extends Fragment {
 
     private TextView textView;
 
-
-
     /*public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         tideViewModel =
@@ -41,13 +39,12 @@ public class TideFragment extends Fragment {
         return root;
     }*/
 
-
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_tide, container, false);
 
+        //액티비티 - 프래그먼트 데이터연동 bundle
         //메인액티비티값을 가져온다
         MainActivity activity = (MainActivity) getActivity();
 
@@ -64,13 +61,7 @@ public class TideFragment extends Fragment {
         //textView.setText(data);
         textView.setText(tidedata);
 
-
-
-
         return rootView;
-
-
-
 
     }//onCreateView
 }//class
