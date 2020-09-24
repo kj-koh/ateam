@@ -9,6 +9,7 @@ import com.example.myfishingnote.MainActivity;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -24,6 +25,8 @@ import java.util.Date;
 public class OpenAPI extends AsyncTask<String, Void, String> {
     private static final String TAG = "OpenAPI";
     private Context context;
+    private String postid;
+    private String buid;
 
 
 
@@ -32,9 +35,10 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
     private AssetManager assetManager;
 
 
-    public OpenAPI(LatLng latLng, Context context) {
-        this.mylatLng = latLng;
+    public OpenAPI(Context context, String postid, String buid) {
         this.context = context;
+        this.postid = postid;
+        this.buid = buid;
     }//생성자
 
     @Override
@@ -48,27 +52,35 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
         sdf = new SimpleDateFormat("hhmmss");
         String Time = sdf.format(date);
 
-        //서비스키
+        //해양 데이터 서비스키
         String ServiceKey = "T7qAa8L36BfkMpmavM9hsw==";
 
-        //관측소 위치의 json파일을 불러온다.
+        /*//관측소 위치의 json파일을 불러와서 JSONArray에 담아준다.
         String obsFileName = "tideObsRecent.json";
         assetManager = ((MainActivity)context).getAssets();
 
-        JSONArray obsStationList = new JSONArray();
-        obsStationList = getObsStationList(mylatLng, obsFileName );
+        JSONObject obsStationList = new JSONObject();
+        obsStationList = getObsStationList(obsFileName );
+
+        Log.d(TAG, "json: " + obsStationList);*/
 
 
 
 
-        //가까운 관측소의 위치를 찾는다.
+
+        //현재 위치를 기반으로 가까운 관측소의 위치를 찾는다.
+
+
+
+
+        //찾은 관측소의 ID를 이용해 해양 정보를 받아온다
 
         try {
 
             //조위관측 최신데이터
             String DataType = "tideObsRecent";
-            String ObsCode = "DT_0001";     //임시값 인천
-            //String ObsCode = findObsCode(mylatLng, );     //임시값 인천
+            String ObsCode = postid;     //임시값 인천
+
 
             String strUrl = "http://www.khoa.go.kr/oceangrid/grid/api/" +
                     DataType + "/search.do?ServiceKey=" +
@@ -94,9 +106,7 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             // List<DTO> list = Arrays.asList(dtos);
             // ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(arr));
 
-            Log.d(TAG, "Async: " + data);
-
-
+            Log.d(TAG, "TEST Async : " + data);
 
             conn.disconnect();
             bufferedReader.close();
@@ -108,21 +118,54 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
         return null;
     }//doinbackgound()
 
-    private JSONArray getObsStationList(LatLng mylatLng, String obsFileName) {
+    private JSONObject getObsStationList(String obsFileName) {
 
-                InputStream inputStream = null;
-        String obsStationList = "";
+        JSONObject object = null;
+        InputStream inputStream = null;
+        String StationList = "";
         try{
-            inputStream = assetManager.open(obsFileName, AssetManager.ACCESS_BUFFER);
+            //asset manager에게서 inputstream 가져오기
+            //asset보다 law폴더를 활용해서 사용하는것이 추천됨
+            //asset명령어는 거의 사라졌다고 함
+            inputStream = context.getAssets().open(obsFileName, AssetManager.ACCESS_BUFFER);
+
+            //문자로 읽어들이기
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            //파일 읽기
+
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                StationList += line;
+
+            }//while
 
 
-        } catch (IOException e) {
+            object = new JSONObject(StationList);
+            Log.d(TAG, "TEST Async: " + object.get("obs_post_id"));
+
+
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
-        }
+        } finally {
+            if(inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }//try&catch
+            }//if
+        }//finally*/
+
+//       try {
+//           String json =
+//       }catch (Exception e){
+//
+//       }
 
 
-        return null;
-    }
+        return object;
+    }//getObsStationList()
 
     @Override
     protected void onPostExecute(String result) {

@@ -8,7 +8,6 @@ import android.content.res.AssetManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -46,6 +45,7 @@ import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
 import com.example.myfishingnote.ui.tide.OpenAPI;
+import com.example.myfishingnote.ui.tide.StationDTO;
 import com.example.myfishingnote.ui.tide.TideFragment;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -54,18 +54,25 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
-import com.example.myfishingnote.ui.tide.ObsDTO;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity {
 
-    public Bundle  tidebundle;
+    public Bundle tidebundle;
     private Context context;
 
     //구글 맵 관련 선언
@@ -75,7 +82,7 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG = "googlemap_example";
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int UPDATE_INTERVAL_MS = 1000;
-    private static final int FASTEST_UPDATE_INTERVAL_MS =500;
+    private static final int FASTEST_UPDATE_INTERVAL_MS = 500;
     LocationManager manager;
     MarkerOptions myMarker;
 
@@ -86,11 +93,11 @@ public class MainActivity extends AppCompatActivity  {
     boolean needRequest = false;
 
     //앱을 실행하기 위해 필요한 퍼미션을 정의 합니다.
-    String[] REQUIRED_PERMISSIONS ={Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_WIFI_STATE,
-                                    Manifest.permission.ACCESS_NETWORK_STATE
-                                    };
+    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.ACCESS_NETWORK_STATE
+    };
 
 
     public static Location location;
@@ -130,6 +137,7 @@ public class MainActivity extends AppCompatActivity  {
 
     //좌표값 저장 변수 선언
     LatLng latLng = null;
+    LatLng curLatLng = null;
     public String data;
 
     @Override
@@ -143,8 +151,7 @@ public class MainActivity extends AppCompatActivity  {
         //startLocationService();
 
 
-
-       //AsyncTask
+        //AsyncTask
         long now = System.currentTimeMillis();
         Date date = new Date(now);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -165,20 +172,10 @@ public class MainActivity extends AppCompatActivity  {
 
          */
 
-        Log.d(TAG, "Async: " + Today);
-        Log.d(TAG, "Async: " + Time);
+        Log.d(TAG, "TEST: " + Today);
+        Log.d(TAG, "TEST: " + Time);
         //Log.d(TAG, "Async: " + strUrl);
-        //asynctask
-        OpenAPI task = new OpenAPI(latLng, context);
 
-
-        try {
-            data = task.execute().get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         /*try {
             OpenAPI task = new OpenAPI(strUrl);
@@ -209,6 +206,46 @@ public class MainActivity extends AppCompatActivity  {
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        //관측소 위치의 json파일을 불러와서 JSONArray에 담아준다.
+        String obsFileName = "tide_obs_recent.json";
+        AssetManager assetManager = getAssets();
+
+        String locationProvider = LocationManager.GPS_PROVIDER;
+        Location currentLocation;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        currentLocation = manager.getLastKnownLocation(locationProvider);
+        if (currentLocation != null) {
+            double lng = currentLocation.getLongitude();
+            double lat = currentLocation.getLatitude();
+            curLatLng = new LatLng(lng, lat);
+        }
+
+       String postid = getObsStationList(curLatLng, obsFileName);
+
+        String buid = "";
+
+        //asynctask
+        OpenAPI task = new OpenAPI(context, postid, buid);
+
+
+        try {
+            data = task.execute().get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "TEST: " + postid);
         //구글맵 내위치 표시
 
         //showMyLocationMarker(location);
@@ -1063,5 +1100,133 @@ public class MainActivity extends AppCompatActivity  {
                     }//for
                 }//if
             }
+
+
+
+    private String getObsStationList(LatLng curLatLng, String obsFileName) {
+
+        ArrayList<StationDTO> list = new ArrayList<>();
+        JSONArray jsonArray = null;
+        JSONObject obj = null;
+        InputStream inputStream = null;
+        String StationList = "";
+        String postid = "";     //관측소 위치 인덱스
+        Double minDis = null;
+
+        Location locationA = new Location("A");
+        locationA.setLatitude(curLatLng.latitude);
+        locationA.setLongitude(curLatLng.longitude);
+        Log.d(TAG, "TEST: curLatLng = " + curLatLng.latitude + " : curLatLng = " + curLatLng.longitude);
+
+
+        try{
+            //asset manager에게서 inputstream 가져오기
+            //asset보다 law폴더를 활용해서 사용하는것이 추천됨
+            //asset명령어는 거의 사라졌다고 함
+            inputStream = getAssets().open(obsFileName, AssetManager.ACCESS_BUFFER);
+
+            //문자로 읽어들이기
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            //파일 읽기
+
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                StationList += line;
+
+            }//while
+
+            Log.d(TAG, "TEST: " + StationList);
+            jsonArray = new JSONArray(StationList);
+            //object = new JSONObject(StationList);
+
+            for (int i = 0; i < jsonArray.length(); i++ ) {
+
+                obj = (JSONObject) jsonArray.get(i);
+                Double obsLat = obj.getDouble("lat");
+                Double obsLng = obj.getDouble("lng");
+
+                double distance = 0;
+
+                Location locationB = new Location("B");
+                locationB.setLatitude(obsLat);
+                locationB.setLongitude(obsLng);
+                distance = locationA.distanceTo(locationB);
+
+                //Log.d(TAG, "getObsStationList: " + obj.getString("obs_post_id") + " : " + obsLat + " : " + obsLng + " : " + distance);
+                if (i == 0) { minDis = distance; }
+
+                if (minDis > distance) {
+                    minDis = distance;
+                    postid = obj.getString("obs_post_id");
+                }//if
+
+
+
+            }
+
+
+
+            /*public double getDistance(LatLng LatLng1, LatLng LatLng2) {
+                double distance = 0;
+                Location locationA = new Location("A");
+                locationA.setLatitude(LatLng1.latitude);
+                locationA.setLongitude(LatLng1.longitude);
+                Location locationB = new Location("B");
+                locationB.setLatitude(LatLng2.latitude);
+                locationB.setLongitude(LatLng2.longitude);
+                distance = locationA.distanceTo(locationB);
+
+                return distance;
+            }
+
+
+            출처: https://metal00456.tistory.com/22 [핵초보 개발자의 일상]*/
+
+            /*for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject station = jsonArray.getJSONObject(i);
+                StationDTO dto = new StationDTO();
+                dto.setObs_post_id(station.getString("obs_post_id"));
+                dto.setObs_post_name(station.getString("obs_post_name"));
+                dto.setLat(station.getString("lat"));
+                dto.setLng(station.getString("lng"));
+                list.add(dto);
+                //Log.d(TAG, "getObsStationList: " + station.getString("obs_post_id"));
+                //Log.d(TAG, "getObsStationList: " + station.getString("obs_post_name"));
+            }*/
+
+           /* Gson gson = new Gson();*/
+            // DTO dto = gson.fromJson( 스트링, DTO.class );
+            // DTO[] dtos = gson.fromJson( 스트링, DTO[].class );
+            // List<DTO> list = Arrays.asList(dtos);
+            // ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(arr));
+
+            /*StationDTO[] array = gson.fromJson(String.valueOf(jsonArray), StationDTO[].class);
+            list = (ArrayList<StationDTO>) Arrays.asList(array);*/
+
+
+            //JSONArray jsonArray = (JSONArray)jsonObject;
+            /*if (jsonArray != null) {
+                int len = jsonArray.length();
+                for (int i=0;i<len;i++){
+                    list.add(jsonArray.get(i).toString());
+                }//for
+            }//if*/
+
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        } finally {
+            if(inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }//try&catch
+            }//if
+        }//finally*/
+
+        return postid;
+    }//getObsStationList()
 
         }//MainActivity
