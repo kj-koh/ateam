@@ -224,9 +224,10 @@ public class MainActivity extends AppCompatActivity {
         }
         currentLocation = manager.getLastKnownLocation(locationProvider);
         if (currentLocation != null) {
-            double lng = currentLocation.getLongitude();
+
             double lat = currentLocation.getLatitude();
-            curLatLng = new LatLng(lng, lat);
+            double lng = currentLocation.getLongitude();
+            curLatLng = new LatLng(lat, lng);
         }
 
        String postid = getObsStationList(curLatLng, obsFileName);
@@ -1114,8 +1115,10 @@ public class MainActivity extends AppCompatActivity {
         Double minDis = null;
 
         Location locationA = new Location("A");
-        locationA.setLatitude(curLatLng.latitude);
-        locationA.setLongitude(curLatLng.longitude);
+        //locationA.setLatitude(curLatLng.latitude);
+        //locationA.setLongitude(curLatLng.longitude);
+        locationA.setLatitude(curLatLng.longitude);
+        locationA.setLongitude(curLatLng.latitude);
         Log.d(TAG, "TEST: curLatLng = " + curLatLng.latitude + " : curLatLng = " + curLatLng.longitude);
 
 
@@ -1153,7 +1156,7 @@ public class MainActivity extends AppCompatActivity {
                 locationB.setLongitude(obsLng);
                 distance = locationA.distanceTo(locationB);
 
-                //Log.d(TAG, "getObsStationList: " + obj.getString("obs_post_id") + " : " + obsLat + " : " + obsLng + " : " + distance);
+                Log.d(TAG, "TEST: " + obj.getString("obs_post_id") + " : " + obsLat + " : " + obsLng + " : " + distance);
                 if (i == 0) { minDis = distance; }
 
                 if (minDis > distance) {
@@ -1162,6 +1165,7 @@ public class MainActivity extends AppCompatActivity {
                 }//if
 
 
+                Log.d(TAG, "TEST : " + minDis);
 
             }
 
