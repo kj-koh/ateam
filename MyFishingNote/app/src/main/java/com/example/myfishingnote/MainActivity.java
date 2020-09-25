@@ -45,7 +45,7 @@ import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
 import com.example.myfishingnote.ui.tide.OpenAPI;
-import com.example.myfishingnote.ui.tide.StationDTO;
+
 import com.example.myfishingnote.ui.tide.TideFragment;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        //관측소 위치의 json파일을 불러와서 JSONArray에 담아준다.
+        //관측소 위치의 json파일을 불러와서 현재위치와 비교후 관측소id를 받는다.
         String obsFileName = "tide_obs_recent.json";
         AssetManager assetManager = getAssets();
 
@@ -230,14 +230,22 @@ public class MainActivity extends AppCompatActivity {
             curLatLng = new LatLng(lat, lng);
         }
 
-       String postid = getObsStationList(curLatLng, obsFileName);
+        //가까운 관측소 id값을 찾는다
+       String postId = getObsStationList(curLatLng, obsFileName);
 
-        String buid = "";
+        //가까운 부이 id값을 찾는다
+        obsFileName = "bu_obs_recent.json";
+
+        String buId = getObsStationList(curLatLng, obsFileName);
+
+        //가까운 예측소 id값을 찾는다
+        obsFileName = "tide_obs_pre_tab.json";
+
+        String obsPreId = getObsStationList(curLatLng, obsFileName);
 
         //asynctask
-        OpenAPI task = new OpenAPI(context, postid, buid);
-
-
+        OpenAPI task = new OpenAPI(context, postId, buId, obsPreId, curLatLng);
+        Log.d(TAG, "TEST : postid" + postId + " / buid : " + buId + "preId : " + obsPreId);
         try {
             data = task.execute().get();
         } catch (ExecutionException e) {
@@ -245,13 +253,23 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "TEST: " + postId);
 
-        Log.d(TAG, "TEST: " + postid);
+
+
+
+
+
         //구글맵 내위치 표시
 
         //showMyLocationMarker(location);
 
         //activity_main_xml화면을 붙여준다
+
+
+
+
+
         /**
          * 뷰 객체를 미리 담아서 같은 뷰를 참조하게 만듦
          */
@@ -1106,19 +1124,18 @@ public class MainActivity extends AppCompatActivity {
 
     private String getObsStationList(LatLng curLatLng, String obsFileName) {
 
-        ArrayList<StationDTO> list = new ArrayList<>();
+
         JSONArray jsonArray = null;
         JSONObject obj = null;
         InputStream inputStream = null;
         String StationList = "";
-        String postid = "";     //관측소 위치 인덱스
+        String postId = "";     //관측소 위치 인덱스
         Double minDis = null;
 
         Location locationA = new Location("A");
-        //locationA.setLatitude(curLatLng.latitude);
-        //locationA.setLongitude(curLatLng.longitude);
-        locationA.setLatitude(curLatLng.longitude);
-        locationA.setLongitude(curLatLng.latitude);
+        locationA.setLatitude(curLatLng.latitude);
+        locationA.setLongitude(curLatLng.longitude);
+
         Log.d(TAG, "TEST: curLatLng = " + curLatLng.latitude + " : curLatLng = " + curLatLng.longitude);
 
 
@@ -1161,7 +1178,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (minDis > distance) {
                     minDis = distance;
-                    postid = obj.getString("obs_post_id");
+                    postId = obj.getString("obs_post_id");
                 }//if
 
 
@@ -1230,7 +1247,7 @@ public class MainActivity extends AppCompatActivity {
             }//if
         }//finally*/
 
-        return postid;
+        return postId;
     }//getObsStationList()
 
         }//MainActivity

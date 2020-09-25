@@ -1,2 +1,3 @@
+include ':java-json'
 include ':app'
 rootProject.name = "MyFishingNote"

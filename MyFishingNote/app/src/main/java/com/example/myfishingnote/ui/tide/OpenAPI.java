@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Xml;
 
 import com.example.myfishingnote.MainActivity;
 import com.google.android.gms.maps.model.LatLng;
@@ -11,6 +12,11 @@ import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -22,27 +28,37 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 public class OpenAPI extends AsyncTask<String, Void, String> {
     private static final String TAG = "OpenAPI";
     private Context context;
-    private String postid;
-    private String buid;
+    private String postId;
+    private String buId;
+    private String obsPreId;
 
 
 
-    private LatLng mylatLng;
+    private LatLng curLatLng;
     ObsDTO dto = new ObsDTO();
     private AssetManager assetManager;
 
 
-    public OpenAPI(Context context, String postid, String buid) {
+    public OpenAPI(Context context, String postId, String buId, String obsPreId, LatLng curLatLng) {
         this.context = context;
-        this.postid = postid;
-        this.buid = buid;
+        this.postId = postId;
+        this.buId = buId;
+        this.obsPreId = obsPreId;
+        this.curLatLng = curLatLng;
     }//생성자
 
     @Override
     protected String doInBackground(String... strUrls) {
+
+        ObsDTO obsDTO = new ObsDTO();
 
         //현재 시간을 받아온다
         long now = System.currentTimeMillis();
@@ -51,6 +67,10 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
         String Today = sdf.format(date);
         sdf = new SimpleDateFormat("hhmmss");
         String Time = sdf.format(date);
+
+        //현재 위치를 DTO에 넣어준다
+        obsDTO.setCur_lat(String.valueOf(curLatLng.latitude));
+        obsDTO.setCur_lng(String.valueOf(curLatLng.longitude));
 
         //해양 데이터 서비스키
         String ServiceKey = "T7qAa8L36BfkMpmavM9hsw==";
@@ -64,13 +84,8 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
 
         Log.d(TAG, "json: " + obsStationList);*/
 
-
-
-
-
         //현재 위치를 기반으로 가까운 관측소의 위치를 찾는다.
-
-
+        // >>메인 액티비티에서 위치를 찾아서 넘겨줌
 
 
         //찾은 관측소의 ID를 이용해 해양 정보를 받아온다
@@ -79,13 +94,11 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
 
             //조위관측 최신데이터
             String DataType = "tideObsRecent";
-            String ObsCode = postid;     //임시값 인천
-
+            String ObsCode = postId;
 
             String strUrl = "http://www.khoa.go.kr/oceangrid/grid/api/" +
                     DataType + "/search.do?ServiceKey=" +
                     ServiceKey +"&ObsCode=" + ObsCode + "+&Date="+Today+"&ResultType=json";
-
 
             URL url = new URL(strUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -99,6 +112,184 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             }
 
             String data = builder.toString();
+            JSONObject jsonObject = new JSONObject(data);
+
+
+            //dto에 값을 넣어준다.
+            obsDTO.setObs_post_id(jsonObject.getJSONObject("result").getJSONObject("meta").getString("obs_post_id"));
+            obsDTO.setObs_post_name(jsonObject.getJSONObject("result").getJSONObject("meta").getString("obs_post_name"));
+            obsDTO.setTide_level(jsonObject.getJSONObject("result").getJSONObject("data").getString("tide_level"));
+            obsDTO.setAir_temp(jsonObject.getJSONObject("result").getJSONObject("data").getString("air_temp"));
+            obsDTO.setAir_press(jsonObject.getJSONObject("result").getJSONObject("data").getString("air_press"));
+
+            obsDTO.setWind_dir(jsonObject.getJSONObject("result").getJSONObject("data").getString("wind_dir"));
+            obsDTO.setWind_speed(jsonObject.getJSONObject("result").getJSONObject("data").getString("wind_speed"));
+            obsDTO.setWind_gust(jsonObject.getJSONObject("result").getJSONObject("data").getString("wind_gust"));
+            obsDTO.setRecord_time(jsonObject.getJSONObject("result").getJSONObject("data").getString("record_time"));
+
+            Log.d(TAG, "TEST !!!!!!!!!!!!!!! JSON: " + obsDTO.getObs_post_id());
+
+
+            //조위관측 예측정보
+            DataType = "tideObsPreTab";
+            ObsCode = obsPreId;
+
+            strUrl = "http://www.khoa.go.kr/oceangrid/grid/api/" +
+                     DataType + "/search.do?ServiceKey=" + ServiceKey + "&ObsCode=" + ObsCode +
+                    "&Date=" + Today + "&ResultType=json";
+
+            url = new URL(strUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
+            bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            builder = new StringBuffer();
+
+            inputString = null;
+            while ((inputString = bufferedReader.readLine()) != null) {
+                builder.append(inputString);
+            }
+
+
+            data = builder.toString();
+            jsonObject = new JSONObject(data);
+            JSONArray pre = jsonObject.getJSONObject("result").getJSONArray("data");
+
+            obsDTO.setTph_level1(pre.getJSONObject(0).getString("tph_level"));
+            obsDTO.setTph_time1(pre.getJSONObject(0).getString("tph_time"));
+            obsDTO.setHl_code1(pre.getJSONObject(0).getString("hl_code"));
+
+            obsDTO.setTph_level2(pre.getJSONObject(1).getString("tph_level"));
+            obsDTO.setTph_time2(pre.getJSONObject(1).getString("tph_time"));
+            obsDTO.setHl_code2(pre.getJSONObject(1).getString("hl_code"));
+
+            obsDTO.setTph_level3(pre.getJSONObject(2).getString("tph_level"));
+            obsDTO.setTph_time3(pre.getJSONObject(2).getString("tph_time"));
+            obsDTO.setHl_code3(pre.getJSONObject(2).getString("hl_code"));
+
+            obsDTO.setTph_level4(pre.getJSONObject(3).getString("tph_level"));
+            obsDTO.setTph_time4(pre.getJSONObject(3).getString("tph_time"));
+            obsDTO.setHl_code4(pre.getJSONObject(3).getString("hl_code"));
+
+            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level1()+ " / " + obsDTO.getTph_time1() + " / " + obsDTO.getHl_code1());
+            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level2()+ " / " + obsDTO.getTph_time2() + " / " + obsDTO.getHl_code2());
+            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level3()+ " / " + obsDTO.getTph_time3() + " / " + obsDTO.getHl_code3());
+            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level4()+ " / " + obsDTO.getTph_time4() + " / " + obsDTO.getHl_code4());
+
+
+
+            //부이데이터
+            DataType = "buObsRecent";
+            ObsCode = buId;
+
+            strUrl = "http://www.khoa.go.kr/oceangrid/grid/api/" +
+            DataType + "/search.do?ServiceKey=" +
+            ServiceKey +"&ObsCode=" + ObsCode + "+&Date="+Today+"&ResultType=json";
+
+            url = new URL(strUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
+            bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            builder = new StringBuffer();
+
+            inputString = null;
+            while ((inputString = bufferedReader.readLine()) != null) {
+                builder.append(inputString);
+            }
+
+
+            data = builder.toString();
+            jsonObject = new JSONObject(data);
+
+            //받아온 json을 DTO에 넣어준다.
+            obsDTO.setBu_post_id(jsonObject.getJSONObject("result").getJSONObject("meta").getString("obs_post_id"));
+            obsDTO.setBu_post_name(jsonObject.getJSONObject("result").getJSONObject("meta").getString("obs_post_name"));
+            obsDTO.setSalinity(jsonObject.getJSONObject("result").getJSONObject("data").getString("Salinity"));
+            obsDTO.setWater_temp(jsonObject.getJSONObject("result").getJSONObject("data").getString("water_temp"));
+            obsDTO.setWave_height(jsonObject.getJSONObject("result").getJSONObject("data").getString("wave_height"));
+
+            //KASI 한국천문연구원 OpenAPI
+            //출몰시간정보
+
+            String latitude = String.valueOf(curLatLng.latitude * 100).substring(0, 4);
+            String longitude = String.valueOf(curLatLng.longitude * 100).substring(0, 5);
+
+                        Log.d(TAG, "TEST : String value of =  " + latitude);
+            Log.d(TAG, "TEST : String value of =  " + longitude);
+
+            ServiceKey = "v5t5d2%2FksCxDRL%2B8LXT8PuDRUcrAew4FddjX%2BZ4Iq8k8OxwMeke60EcX8DrRv8qhwU2%2B2FwJ7LyaikUvZQGYjw%3D%3D";
+            strUrl = "http://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService/getLCRiseSetInfo?longitude=" +
+                    longitude + "&latitude=" + latitude + "&locdate=" + Today + "&dnYn=N&ServiceKey="
+                    +ServiceKey;
+
+            url = new URL(strUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
+            bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            builder = new StringBuffer();
+
+            inputString = null;
+            while ((inputString = bufferedReader.readLine()) != null) {
+                builder.append(inputString);
+            }
+
+            data = builder.toString();
+
+            //요기 하는중
+            ///////////////////////JSONObject json = Xml.toJSONObject(data);
+
+
+
+
+            Log.d(TAG, "TEXT : XML " + data);
+
+
+            //KASI 한국천문연구원 OpenAPI
+            //음양력
+
+            String solYear = Today.substring(0, 4);
+            String solMonth = Today.substring(4, 6);
+            String solDay = Today.substring(6);
+
+            Log.d(TAG, "TEST solYear: " + solYear);
+            Log.d(TAG, "TEST solMonth: " + solMonth);
+            Log.d(TAG, "TEST solDay: " + solDay);
+
+            strUrl = "http://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo?solYear=" +
+                    solYear + "&solMonth=" + solMonth + "&solDay=" + solDay + "&ServiceKey=" + ServiceKey;
+
+            url = new URL(strUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
+            bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            builder = new StringBuffer();
+
+            inputString = null;
+            while ((inputString = bufferedReader.readLine()) != null) {
+                builder.append(inputString);
+            }
+
+            data += builder.toString();
+
+            //OpenWeatherMap.org
+            //날씨정보
+
+            /*String appid="dce792887e1a5e9ca4b890cfd0cdc0e6";
+
+            strUrl = "http://api.openweathermap.org/data/2.5/weather?lat=" +
+                    curLatLng.latitude + "&lon=" + curLatLng.longitude + "&lang=kr&appid="+ appid;
+
+            url = new URL(strUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
+            bufferedReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            builder = new StringBuffer();
+
+            inputString = null;
+            while ((inputString = bufferedReader.readLine()) != null) {
+                builder.append(inputString);
+            }
+
+            data += builder.toString(); */
 
             // Gson gson = new Gson();
             // DTO dto = gson.fromJson( 스트링, DTO.class );
@@ -112,60 +303,12 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             bufferedReader.close();
             return data;
 
-        } catch (IOException e) {
+        } catch (IOException | JSONException  e) {
             e.printStackTrace();
         }
         return null;
     }//doinbackgound()
 
-    private JSONObject getObsStationList(String obsFileName) {
-
-        JSONObject object = null;
-        InputStream inputStream = null;
-        String StationList = "";
-        try{
-            //asset manager에게서 inputstream 가져오기
-            //asset보다 law폴더를 활용해서 사용하는것이 추천됨
-            //asset명령어는 거의 사라졌다고 함
-            inputStream = context.getAssets().open(obsFileName, AssetManager.ACCESS_BUFFER);
-
-            //문자로 읽어들이기
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            //파일 읽기
-
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                StationList += line;
-
-            }//while
-
-
-            object = new JSONObject(StationList);
-            Log.d(TAG, "TEST Async: " + object.get("obs_post_id"));
-
-
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        } finally {
-            if(inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }//try&catch
-            }//if
-        }//finally*/
-
-//       try {
-//           String json =
-//       }catch (Exception e){
-//
-//       }
-
-
-        return object;
-    }//getObsStationList()
 
     @Override
     protected void onPostExecute(String result) {
