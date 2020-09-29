@@ -1,6 +1,9 @@
 package com.example.myfishingnote.ui.map;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -146,40 +149,70 @@ public class MapsFragment extends Fragment {
         //내위치 주소변환
         try {
             List<Address> list = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
             if (myMarker != null) map.clear();
             myMarker = new MarkerOptions();
             myMarker.position(new LatLng(location.getLatitude(), location.getLongitude()));
             myMarker.title("♥내 위치♥");
             myMarker.snippet(list.get(0).getAddressLine(0));
             myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_red));
+            //map.addMarker(myMarker);
+            Log.d(TAG, "TEST : showMyLocationMarker: " + list.get(0).getAddressLine(0).toString());
+
+            BitmapDrawable bitmapdraw1=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_icon_red);
+            Bitmap b1=bitmapdraw1.getBitmap();
+            Bitmap marker_icon_red_50 = Bitmap.createScaledBitmap(b1, 90, 150, false);
+            myMarker.icon(BitmapDescriptorFactory.fromBitmap(marker_icon_red_50));
             map.addMarker(myMarker);
+
+
 
             myMarker = new MarkerOptions();
             myMarker.position(new LatLng(34.7538, 127.5800));
             myMarker.title("2019-12-30 PM 06:30");
             myMarker.snippet(list.get(0).getAddressLine(0));
-            myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+
+            Drawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_icon_blue);
+            Bitmap b= ((BitmapDrawable) bitmapdraw).getBitmap();
+            Bitmap marker_icon_blue_50 = Bitmap.createScaledBitmap(b, 90, 150, false);
+            myMarker.icon(BitmapDescriptorFactory.fromBitmap(marker_icon_blue_50));
+
+            //myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue_50));
             map.addMarker(myMarker);
 
             myMarker = new MarkerOptions();
             myMarker.position(new LatLng(34.6974, 127.2642));
             myMarker.title("2020-01-03 PM 08:15");
             myMarker.snippet(list.get(0).getAddressLine(0));
-            myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            //myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_icon_blue);
+            b= ((BitmapDrawable) bitmapdraw).getBitmap();
+            marker_icon_blue_50 = Bitmap.createScaledBitmap(b, 90, 150, false);
+            myMarker.icon(BitmapDescriptorFactory.fromBitmap(marker_icon_blue_50));
             map.addMarker(myMarker);
 
             myMarker = new MarkerOptions();
             myMarker.position(new LatLng(34.8467, 126.3561));
             myMarker.title("2020-04-28 PM 11:30");
             myMarker.snippet(list.get(0).getAddressLine(0));
-            myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            //myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_icon_blue);
+            b= ((BitmapDrawable) bitmapdraw).getBitmap();
+            marker_icon_blue_50 = Bitmap.createScaledBitmap(b, 90, 150, false);
+            myMarker.icon(BitmapDescriptorFactory.fromBitmap(marker_icon_blue_50));
             map.addMarker(myMarker);
 
             myMarker = new MarkerOptions();
             myMarker.position(new LatLng(34.4546, 126.3778));
             myMarker.title("2020-06-06 AM 11:45");
             myMarker.snippet(list.get(0).getAddressLine(0));
-            myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            /*myMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_icon_blue));
+            map.addMarker(myMarker);*/
+
+            bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.marker_icon_blue);
+            b= ((BitmapDrawable) bitmapdraw).getBitmap();
+            marker_icon_blue_50 = Bitmap.createScaledBitmap(b, 90, 150, false);
+            myMarker.icon(BitmapDescriptorFactory.fromBitmap(marker_icon_blue_50));
             map.addMarker(myMarker);
 
 

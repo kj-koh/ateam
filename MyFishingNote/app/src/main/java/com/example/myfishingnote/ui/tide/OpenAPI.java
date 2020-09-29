@@ -4,18 +4,13 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.util.Xml;
 
-import com.example.myfishingnote.MainActivity;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.json.XML;
 
 
 import java.io.BufferedInputStream;
@@ -28,12 +23,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-public class OpenAPI extends AsyncTask<String, Void, String> {
+public class OpenAPI extends AsyncTask<String, Void, ObsDTO> {
     private static final String TAG = "OpenAPI";
     private Context context;
     private String postId;
@@ -56,7 +46,7 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
     }//생성자
 
     @Override
-    protected String doInBackground(String... strUrls) {
+    protected ObsDTO doInBackground(String... strUrls) {
 
         ObsDTO obsDTO = new ObsDTO();
 
@@ -127,7 +117,7 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             obsDTO.setWind_gust(jsonObject.getJSONObject("result").getJSONObject("data").getString("wind_gust"));
             obsDTO.setRecord_time(jsonObject.getJSONObject("result").getJSONObject("data").getString("record_time"));
 
-            Log.d(TAG, "TEST !!!!!!!!!!!!!!! JSON: " + obsDTO.getObs_post_id());
+            //Log.d(TAG, "TEST !!!!!!!!!!!!!!! JSON: " + obsDTO.getObs_post_id());
 
 
             //조위관측 예측정보
@@ -152,11 +142,17 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
 
             data = builder.toString();
             jsonObject = new JSONObject(data);
+
+            //Log.d(TAG, "TEST : doInBackground: " + jsonObject);
             JSONArray pre = jsonObject.getJSONObject("result").getJSONArray("data");
 
+
+            //Log.d(TAG, "TEST : doInBackground: PRE = " + pre.getJSONObject(0).getString("tph_level"));
             obsDTO.setTph_level1(pre.getJSONObject(0).getString("tph_level"));
+            //Log.d(TAG, "TEST : doInBackground: PRE = " + obsDTO.getTph_level1());
             obsDTO.setTph_time1(pre.getJSONObject(0).getString("tph_time"));
             obsDTO.setHl_code1(pre.getJSONObject(0).getString("hl_code"));
+            //Log.d(TAG, "TEST : doInBackground: " + pre.length());
 
             obsDTO.setTph_level2(pre.getJSONObject(1).getString("tph_level"));
             obsDTO.setTph_time2(pre.getJSONObject(1).getString("tph_time"));
@@ -166,14 +162,18 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             obsDTO.setTph_time3(pre.getJSONObject(2).getString("tph_time"));
             obsDTO.setHl_code3(pre.getJSONObject(2).getString("hl_code"));
 
-            obsDTO.setTph_level4(pre.getJSONObject(3).getString("tph_level"));
-            obsDTO.setTph_time4(pre.getJSONObject(3).getString("tph_time"));
-            obsDTO.setHl_code4(pre.getJSONObject(3).getString("hl_code"));
+            if (pre.length() !=3) {
+                obsDTO.setTph_level4(pre.getJSONObject(3).getString("tph_level"));
+                obsDTO.setTph_time4(pre.getJSONObject(3).getString("tph_time"));
+                obsDTO.setHl_code4(pre.getJSONObject(3).getString("hl_code"));
+            }
+            //Log.d(TAG, "TEST : doInBackground: PRE = " + pre.getJSONObject(0).getString("tph_level"));
+            //Log.d(TAG, "TEST : doInBackground: PRE = " + pre.getJSONObject(1).getString("tph_level"));
 
-            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level1()+ " / " + obsDTO.getTph_time1() + " / " + obsDTO.getHl_code1());
-            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level2()+ " / " + obsDTO.getTph_time2() + " / " + obsDTO.getHl_code2());
-            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level3()+ " / " + obsDTO.getTph_time3() + " / " + obsDTO.getHl_code3());
-            Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level4()+ " / " + obsDTO.getTph_time4() + " / " + obsDTO.getHl_code4());
+            //Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level1()+ " / " + obsDTO.getTph_time1() + " / " + obsDTO.getHl_code1());
+            //Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level2()+ " / " + obsDTO.getTph_time2() + " / " + obsDTO.getHl_code2());
+            //Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level3()+ " / " + obsDTO.getTph_time3() + " / " + obsDTO.getHl_code3());
+            //Log.d(TAG, "TEST + DTO : "+obsDTO.getTph_level4()+ " / " + obsDTO.getTph_time4() + " / " + obsDTO.getHl_code4());
 
 
 
@@ -213,8 +213,8 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             String latitude = String.valueOf(curLatLng.latitude * 100).substring(0, 4);
             String longitude = String.valueOf(curLatLng.longitude * 100).substring(0, 5);
 
-                        Log.d(TAG, "TEST : String value of =  " + latitude);
-            Log.d(TAG, "TEST : String value of =  " + longitude);
+            //Log.d(TAG, "TEST : String value of =  " + latitude);
+            //Log.d(TAG, "TEST : String value of =  " + longitude);
 
             ServiceKey = "v5t5d2%2FksCxDRL%2B8LXT8PuDRUcrAew4FddjX%2BZ4Iq8k8OxwMeke60EcX8DrRv8qhwU2%2B2FwJ7LyaikUvZQGYjw%3D%3D";
             strUrl = "http://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService/getLCRiseSetInfo?longitude=" +
@@ -234,13 +234,22 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
 
             data = builder.toString();
 
-            //요기 하는중
-            ///////////////////////JSONObject json = Xml.toJSONObject(data);
+            //XML을 JSON으로 변환해서 처리
+            //외부 라이브러리 사용
+            JSONObject json = XML.toJSONObject(data);
+
+            obsDTO.setSunrise("0"+json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("sunrise"));
+            obsDTO.setSunset(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("sunset"));
+            obsDTO.setMoonrise(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("moonrise"));
+            obsDTO.setMoonset("0"+json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("moonset"));
 
 
 
-
-            Log.d(TAG, "TEXT : XML " + data);
+            //Log.d(TAG, "TEST : XML : SUNRISE " +obsDTO.getSunrise());
+            //Log.d(TAG, "TEST : XML : SUNSET " +obsDTO.getSunset());
+            //Log.d(TAG, "TEST : XML : MOONRISE " +obsDTO.getMoonrise());
+            //Log.d(TAG, "TEST : XML : MOONSET " +obsDTO.getMoonset());
+            //Log.d(TAG, "TEST : XML " + json);
 
 
             //KASI 한국천문연구원 OpenAPI
@@ -250,9 +259,9 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             String solMonth = Today.substring(4, 6);
             String solDay = Today.substring(6);
 
-            Log.d(TAG, "TEST solYear: " + solYear);
+            /*Log.d(TAG, "TEST solYear: " + solYear);
             Log.d(TAG, "TEST solMonth: " + solMonth);
-            Log.d(TAG, "TEST solDay: " + solDay);
+            Log.d(TAG, "TEST solDay: " + solDay);*/
 
             strUrl = "http://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo?solYear=" +
                     solYear + "&solMonth=" + solMonth + "&solDay=" + solDay + "&ServiceKey=" + ServiceKey;
@@ -268,7 +277,22 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
                 builder.append(inputString);
             }
 
-            data += builder.toString();
+            data = builder.toString();
+
+            json = XML.toJSONObject(data);
+
+            //Log.d(TAG, "TEST : XML : Lunday " +json);
+
+            obsDTO.setSolWeek(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("solWeek"));
+            obsDTO.setLunYear(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("lunYear"));
+            obsDTO.setLunMonth(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("lunMonth"));
+            obsDTO.setLunDay(json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONObject("item").getString("lunDay"));
+
+            //Log.d(TAG, "TEST : XML : Solweek " +obsDTO.getSolWeek());
+            //Log.d(TAG, "TEST : XML : LunY " +obsDTO.getLunYear());
+            //Log.d(TAG, "TEST : XML : LunM " +obsDTO.getLunMonth());
+            //Log.d(TAG, "TEST : XML : Lunday " +obsDTO.getLunDay());
+
 
             //OpenWeatherMap.org
             //날씨정보
@@ -297,11 +321,12 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
             // List<DTO> list = Arrays.asList(dtos);
             // ArrayList<String> arrayList = new ArrayList<String>(Arrays.asList(arr));
 
-            Log.d(TAG, "TEST Async : " + data);
+            //Log.d(TAG, "TEST Async : " + data);
 
             conn.disconnect();
             bufferedReader.close();
-            return data;
+            Log.d(TAG, "TEST : DTO 반환 : " + obsDTO.getObs_post_name());
+            return obsDTO;
 
         } catch (IOException | JSONException  e) {
             e.printStackTrace();
@@ -311,7 +336,7 @@ public class OpenAPI extends AsyncTask<String, Void, String> {
 
 
     @Override
-    protected void onPostExecute(String result) {
+    protected void onPostExecute(ObsDTO result) {
 
     }
 

@@ -30,6 +30,7 @@ public class ObsDTO implements Serializable {
 
     private String air_temp;            //기온        27.5	℃
     private String air_press;           //기압        1009	hPa
+    private String cur_position;        //현재 위치 한글명
     private String cur_lat;             //현재 위도
     private String cur_lng;             //현재 경도
     private String record_time;         //관측시간    2016-01-01 00:01:00
@@ -56,6 +57,14 @@ public class ObsDTO implements Serializable {
 
     //날씨정보 https://openweathermap.org/
 
+
+    public String getCur_position() {
+        return cur_position;
+    }
+
+    public void setCur_position(String cur_position) {
+        this.cur_position = cur_position;
+    }
 
     public String getObs_post_id() {
         return obs_post_id;
