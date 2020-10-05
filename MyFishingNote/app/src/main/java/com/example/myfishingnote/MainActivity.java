@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -41,11 +43,13 @@ import com.example.myfishingnote.ui.home.HomeFragment;
 import com.example.myfishingnote.ui.map.MapsFragment;
 import com.example.myfishingnote.ui.member.ui.login.LoginActivity;
 import com.example.myfishingnote.ui.note.AddNote;
+import com.example.myfishingnote.ui.note.NoteActivity;
 import com.example.myfishingnote.ui.note.NoteFragment;
 import com.example.myfishingnote.ui.settings.SettingsActivity;
 import com.example.myfishingnote.ui.suggest.SuggestFragment;
+import com.example.myfishingnote.ui.tide.ObsDTO;
 import com.example.myfishingnote.ui.tide.OpenAPI;
-import com.example.myfishingnote.ui.tide.StationDTO;
+
 import com.example.myfishingnote.ui.tide.TideFragment;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -67,13 +71,15 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public Bundle tidebundle;
+    public Bundle bundle;
     private Context context;
+    ObsDTO obsDTO;
 
     //구글 맵 관련 선언
     private GoogleMap mMap;
@@ -136,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter<String> arrayAdapter;
 
     //좌표값 저장 변수 선언
-    LatLng latLng = null;
+    //LatLng latLng = null;
     LatLng curLatLng = null;
     public String data;
 
@@ -147,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);*/
 
         checkDangerousPermissions();
-        tidebundle = new Bundle();
+        bundle = new Bundle();
         //startLocationService();
 
 
@@ -206,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        //관측소 위치의 json파일을 불러와서 JSONArray에 담아준다.
+        //관측소 위치의 json파일을 불러와서 현재위치와 비교후 관측소id를 받는다.
         String obsFileName = "tide_obs_recent.json";
         AssetManager assetManager = getAssets();
 
@@ -230,28 +236,115 @@ public class MainActivity extends AppCompatActivity {
             curLatLng = new LatLng(lat, lng);
         }
 
-       String postid = getObsStationList(curLatLng, obsFileName);
+        Log.d(TAG, "TEST : CURLAT" + curLatLng.latitude);
 
-        String buid = "";
+        /*//현재 위치 한글 저장
+        Geocoder geocoder = new Geocoder(getApplicationContext());
+        List<Address> listAd = null;
+        Address address;
+        try {
+
+            listAd = geocoder.getFromLocation(curLatLng.latitude, curLatLng.longitude, 5);
+            address = listAd.get(0);
+            //Log.d(TAG, "TEST : onCreate: " + listAd.get(0).getAddressLine(0).toString());
+            //Log.d(TAG, "TEST : onCreate: " + address.getAddressLine(0).toString());
+            //Log.d(TAG, "TEST : onCreate: " + listAd.get(0).getAddressLine(0));
+            //Log.d(TAG, "TEST : onCreate: " + address.getAddressLine(0));
+            //obsDTO.setCur_position(address.getAddressLine(0));
+            Log.d(TAG, "TEST : onCreate: " + obsDTO.getCur_position());
+            //obsDTO.setCur_position(list.get(0).getAddressLine(0));
+            //obsDTO.setCur_position(address.getAddressLine(0).toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (listAd != null) {
+            if (listAd.size()==0) {
+                Log.d(TAG, "TEST : onCreate: 주소 찾을 수 없음" );
+           } else {
+                Log.d(TAG, "TEST : onCreate: 주소 출력" );
+            }
+        }
+*/
+
+
+        //Log.d(TAG, "TEST : onCreate : " + obsDTO.getCur_position());
+
+        //가까운 관측소 id값을 찾는다
+       String postId = getObsStationList(curLatLng, obsFileName);
+
+        //가까운 부이 id값을 찾는다
+        obsFileName = "bu_obs_recent.json";
+
+        String buId = getObsStationList(curLatLng, obsFileName);
+
+        //가까운 예측소 id값을 찾는다
+        obsFileName = "tide_obs_pre_tab.json";
+
+        String obsPreId = getObsStationList(curLatLng, obsFileName);
+
 
         //asynctask
-        OpenAPI task = new OpenAPI(context, postid, buid);
-
-
+        OpenAPI task = new OpenAPI(context, postId, buId, obsPreId, curLatLng);
+        //Log.d(TAG, "TEST : postid" + postId + " / buid : " + buId + "preId : " + obsPreId);
         try {
-            data = task.execute().get();
+            obsDTO = task.execute().get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "TEST: " + obsDTO.getObs_post_name());
 
-        Log.d(TAG, "TEST: " + postid);
+
+        //현재 위치 한글 저장
+        Geocoder geocoder = new Geocoder(getApplicationContext());
+        List<Address> listAd = null;
+        Address address;
+        try {
+
+            listAd = geocoder.getFromLocation(curLatLng.latitude, curLatLng.longitude, 5);
+            address = listAd.get(0);
+            //Log.d(TAG, "TEST : onCreate: " + listAd.get(0).getAddressLine(0).toString());
+            //Log.d(TAG, "TEST : onCreate: " + address.getAddressLine(0).toString());
+            //Log.d(TAG, "TEST : onCreate: " + listAd.get(0).getAddressLine(0));
+            //Log.d(TAG, "TEST : onCreate: " + address.getAddressLine(0));
+            obsDTO.setCur_position(address.getAddressLine(0));
+            Log.d(TAG, "TEST : onCreate: " + obsDTO.getCur_position());
+            //obsDTO.setCur_position(list.get(0).getAddressLine(0));
+            //obsDTO.setCur_position(address.getAddressLine(0).toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (listAd != null) {
+            if (listAd.size()==0) {
+                Log.d(TAG, "TEST : onCreate: 주소 찾을 수 없음" );
+            } else {
+                Log.d(TAG, "TEST : onCreate: 주소 출력" );
+            }
+        }
+
+        Log.d(TAG, "TEST : BUNDLE : " + obsDTO.getObs_post_name());
+        bundle.putSerializable("obsDTO", obsDTO);
+
+
+
+
+
+
+
+
         //구글맵 내위치 표시
 
         //showMyLocationMarker(location);
 
         //activity_main_xml화면을 붙여준다
+
+
+
+
+
         /**
          * 뷰 객체를 미리 담아서 같은 뷰를 참조하게 만듦
          */
@@ -386,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         /* 프래그먼트 설정을 메소드로 뺐습니다.. (보기 편하게) */
-        tidebundle.putString("data", data);
+        //tidebundle.putSerializable("obsDTO", obsDTO);
         fragmentSettings();
 
     }//onCreate()
@@ -445,6 +538,8 @@ public class MainActivity extends AppCompatActivity {
         /* 프래그먼트 객체 생성 */
         homeFragment = new HomeFragment();
         tideFragment = new TideFragment();
+        tideFragment.setArguments(bundle);
+
         suggestFragment = new SuggestFragment();
         noteFragment = new NoteFragment();
         mapsFragment = new MapsFragment();
@@ -477,7 +572,9 @@ public class MainActivity extends AppCompatActivity {
                         transaction.replace(R.id.nav_host_fragment, suggestFragment).commit();
                         break;
                     case R.id.nav_note :
-                        transaction.replace(R.id.nav_host_fragment, noteFragment).commit();
+                        //transaction.replace(R.id.nav_host_fragment, noteFragment).commit();
+                        Intent intent = new Intent(MainActivity.this, NoteActivity.class);
+                        startActivity(intent);
                         break;
                     case R.id.nav_map :
                         //String lat = String.valueOf(location.getLatitude());
@@ -488,7 +585,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case R.id.nav_settings :
                         // Toast.makeText(MainActivity.this, "settings", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                        intent = new Intent(MainActivity.this, SettingsActivity.class);
                         startActivity(intent);
                         break;
                     case R.id.nav_help :
@@ -1106,20 +1203,19 @@ public class MainActivity extends AppCompatActivity {
 
     private String getObsStationList(LatLng curLatLng, String obsFileName) {
 
-        ArrayList<StationDTO> list = new ArrayList<>();
+
         JSONArray jsonArray = null;
         JSONObject obj = null;
         InputStream inputStream = null;
         String StationList = "";
-        String postid = "";     //관측소 위치 인덱스
+        String postId = "";     //관측소 위치 인덱스
         Double minDis = null;
 
         Location locationA = new Location("A");
-        //locationA.setLatitude(curLatLng.latitude);
-        //locationA.setLongitude(curLatLng.longitude);
-        locationA.setLatitude(curLatLng.longitude);
-        locationA.setLongitude(curLatLng.latitude);
-        Log.d(TAG, "TEST: curLatLng = " + curLatLng.latitude + " : curLatLng = " + curLatLng.longitude);
+        locationA.setLatitude(curLatLng.latitude);
+        locationA.setLongitude(curLatLng.longitude);
+
+        //Log.d(TAG, "TEST: curLatLng = " + curLatLng.latitude + " : curLatLng = " + curLatLng.longitude);
 
 
         try{
@@ -1139,7 +1235,7 @@ public class MainActivity extends AppCompatActivity {
 
             }//while
 
-            Log.d(TAG, "TEST: " + StationList);
+            //Log.d(TAG, "TEST: " + StationList);
             jsonArray = new JSONArray(StationList);
             //object = new JSONObject(StationList);
 
@@ -1156,16 +1252,16 @@ public class MainActivity extends AppCompatActivity {
                 locationB.setLongitude(obsLng);
                 distance = locationA.distanceTo(locationB);
 
-                Log.d(TAG, "TEST: " + obj.getString("obs_post_id") + " : " + obsLat + " : " + obsLng + " : " + distance);
+                //Log.d(TAG, "TEST: " + obj.getString("obs_post_id") + " : " + obsLat + " : " + obsLng + " : " + distance);
                 if (i == 0) { minDis = distance; }
 
                 if (minDis > distance) {
                     minDis = distance;
-                    postid = obj.getString("obs_post_id");
+                    postId = obj.getString("obs_post_id");
                 }//if
 
 
-                Log.d(TAG, "TEST : " + minDis);
+                //Log.d(TAG, "TEST : " + minDis);
 
             }
 
@@ -1230,7 +1326,7 @@ public class MainActivity extends AppCompatActivity {
             }//if
         }//finally*/
 
-        return postid;
+        return postId;
     }//getObsStationList()
 
         }//MainActivity

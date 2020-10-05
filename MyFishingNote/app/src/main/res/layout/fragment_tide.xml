@@ -8,15 +8,16 @@
     android:orientation="vertical"
     tools:context=".ui.home.HomeFragment">
 
-    <ImageView
+    <com.github.mikephil.charting.charts.LineChart
         android:layout_width="match_parent"
-        android:layout_height="142dp"
-        android:src="@drawable/logofishandroid01" />
+        android:layout_height="200dp"
+
+        android:id="@+id/chart"/>
 
     <TextView
         android:id="@+id/textViewJson"
         android:layout_width="match_parent"
-        android:layout_height="503dp"
+        android:layout_height="wrap_content"
         android:text="TextView" />
 
 
